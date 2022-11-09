@@ -4,8 +4,7 @@ import clsx from "clsx";
 
 import AppLayout from "../../components/AppLayout";
 import { useAuth } from "../../contexts/AuthContext";
-import app from "../../firebase"
-import { getDatabase, ref, set, query, orderByKey, onValue } from "firebase/database";
+import { getDatabase, ref, set } from "firebase/database";
 
 import { Dialog, Transition } from '@headlessui/react'
 import { ExclamationTriangleIcon } from '@heroicons/react/24/outline'
@@ -13,10 +12,11 @@ import { ExclamationTriangleIcon } from '@heroicons/react/24/outline'
 import { Container } from "../../components/Container";
 import { FormattedDate } from "../../components/FormattedDate";
 import { ArrowLeftIcon } from "@heroicons/react/20/solid";
-import { getLocalData, readingTime, setLocalData, slugify } from "../../helpers";
+import { getLocalData, setLocalData, decrypt } from "../../helpers";
 
 export default function ReadPost() {
     const { currentUser, redirect } = useAuth()
+
     const {post_id} = useParams();
     const posts = getLocalData(`posts-${currentUser.uid}`);
     if (posts == null) {
@@ -99,7 +99,7 @@ export default function ReadPost() {
                         </p>
                       </div>
                       <div className="flex flex-col space-y-5">
-                        <div dangerouslySetInnerHTML={{ __html: currentPost.content }}/>
+                        <div dangerouslySetInnerHTML={{ __html: decrypt(currentUser.uid, currentPost.content) }}/>
                       </div>
                     </div>
                   </div>

@@ -16,6 +16,7 @@
     "@testing-library/user-event": "^13.5.0",
     "@tippyjs/react": "^4.2.6",
     "clsx": "^1.2.1",
+    "cryptr": "^6.0.3",
     "faunadb": "^4.7.1",
     "firebase": "^9.13.0",
     "moment": "^2.29.4",

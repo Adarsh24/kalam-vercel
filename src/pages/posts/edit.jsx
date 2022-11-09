@@ -10,7 +10,7 @@ import { Container } from "../../components/Container";
 
 import { ArrowLeftIcon } from "@heroicons/react/20/solid";
 
-import { getLocalData, setLocalData, slugify } from "../../helpers";
+import { getLocalData, setLocalData, slugify, crypt, decrypt } from "../../helpers";
 
 // Require Editor JS files.
 import 'froala-editor/js/froala_editor.pkgd.min.js';
@@ -33,6 +33,7 @@ import FroalaEditor from 'react-froala-wysiwyg';
 
 export default function EditPost() {
     const { currentUser, redirect } = useAuth()
+
     const {post_id} = useParams();
     let posts = getLocalData(`posts-${currentUser.uid}`);
     if (posts == null) {
@@ -50,7 +51,7 @@ export default function EditPost() {
     const [isSaving, setIsSaving] = useState(false);
 
     useEffect(() => {
-      setTimeout(() => editorRef.editor.html.set(currentPost.content), 10)
+      setTimeout(() => editorRef.editor.html.set(decrypt(currentUser.uid, currentPost.content)), 10)
     });
 
     const config = {
@@ -89,7 +90,7 @@ export default function EditPost() {
         post_id: currentPost.post_id,
         slug: slug,
         title: formTitle,
-        content: formContent,
+        content: crypt(currentUser.uid, formContent),
         created_at: currentPost.created_at,
         edited_at: currentTimestamp
       };

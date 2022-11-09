@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 
 import AppLayout from "../components/AppLayout";
 import { FormattedDate } from "../components/FormattedDate"
+import { useAuth } from "../contexts/AuthContext";
 import { Container } from "../components/Container";
 
 import noEntriesImage from "../images/no-entries.png";
@@ -9,9 +10,11 @@ import noEntriesImage from "../images/no-entries.png";
 import {
   PencilIcon
 } from '@heroicons/react/24/outline'
-import { readingTime } from "../helpers";
+import { readingTime, decrypt } from "../helpers";
 
 export default function Home() {
+    const { currentUser } = useAuth()
+
     function PostEntry({ post }) {
       let date = new Date(post.created_at)
     
@@ -33,11 +36,11 @@ export default function Home() {
                 className="order-first font-mono text-sm leading-7 text-slate-500"
               />
               <p className="mt-1 font-display text-sm leading-7 text-slate-700">
-                {post.content.replace(/<[^>]*>/g, '').split(" ").splice(0,25).join(" ")}...
+                {decrypt(currentUser.uid, post.content).replace(/<[^>]*>/g, '').split(" ").splice(0,25).join(" ")}...
               </p>
               <div className="mt-4 flex items-center gap-4">
                 <p className="font-display text-xs text-slate-500">
-                  {readingTime(post.content.replace(/<[^>]*>/g, ''))} min read
+                  {readingTime(decrypt(currentUser.uid, post.content).replace(/<[^>]*>/g, ''))} min read
                 </p>
                 <Link
                   to={`/post/edit/${post.post_id}`}

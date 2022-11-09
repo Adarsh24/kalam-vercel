@@ -10,7 +10,7 @@ import { Container } from "../../components/Container";
 
 import { ArrowLeftIcon } from "@heroicons/react/20/solid";
 
-import { getLocalData, setLocalData, slugify } from "../../helpers";
+import { getLocalData, setLocalData, slugify, crypt, decrypt } from "../../helpers";
 
 // Require Editor JS files.
 import 'froala-editor/js/froala_editor.pkgd.min.js';
@@ -76,7 +76,7 @@ export default function AddPost() {
         post_id: postId,
         slug: slug,
         title: formTitle,
-        content: formContent,
+        content: crypt(currentUser.uid, formContent),
         created_at: currentTimestamp,
         edited_at: currentTimestamp
       };
