@@ -3,14 +3,14 @@ import { Link } from "react-router-dom";
 
 import AppLayout from "../../components/AppLayout";
 import { useAuth } from "../../contexts/AuthContext";
-import app from "../../firebase"
-import { getDatabase, ref, set, query, orderByKey, onValue } from "firebase/database";
+import { getDatabase, ref, set } from "firebase/database";
 
 import { Container } from "../../components/Container";
+import { Label } from './../../components/Label';
 
 import { ArrowLeftIcon } from "@heroicons/react/20/solid";
 
-import { getLocalData, setLocalData, slugify, crypt, decrypt } from "../../helpers";
+import { getLocalData, setLocalData, slugify, crypt } from "../../helpers";
 
 // Require Editor JS files.
 import 'froala-editor/js/froala_editor.pkgd.min.js';
@@ -32,7 +32,7 @@ import 'froala-editor/css/froala_editor.pkgd.min.css';
 import FroalaEditor from 'react-froala-wysiwyg';
 
 export default function AddPost() {
-    const { currentUser, logout, redirect } = useAuth()
+    const { currentUser, redirect } = useAuth()
 
     const titleEl = useRef('');
     const [formErrors, setFormErrors] = useState({});
@@ -125,9 +125,7 @@ export default function AddPost() {
                     <div className="mx-auto px-4 sm:px-6 md:max-w-2xl md:px-4 lg:px-0">
                       <div className="flex flex-col space-y-5">
                         <div>
-                          <label htmlFor="post-title" className="block text-sm font-medium text-gray-700">
-                            Post Title
-                          </label>
+                          <Label htmlFor={'post-title'} title='Post Title' />
                           <div className="mt-1">
                             <input
                               type="text"
@@ -141,9 +139,7 @@ export default function AddPost() {
                           <div className="mt-1 text-sm text-red-500">{ formErrors.title }</div>
                         </div>
                         <div>
-                          <label htmlFor="post-title" className="mb-1 block text-sm font-medium text-gray-700">
-                            Post Content
-                          </label>
+                          <Label htmlFor={'post-content'} title={'Post Content'} />
                           <FroalaEditor ref={(ref) => (editorRef = ref)} config={config} tag='textarea'/>
                         </div>
                       </div>
