@@ -10,6 +10,7 @@ import { ArrowLeftIcon } from "@heroicons/react/20/solid";
 import noEntriesImage from "../../images/no-entries.png";
 
 import { readingTime, decrypt } from "../../helpers";
+import moment from 'moment';
 
 export default function DatePosts() {
     const { currentUser } = useAuth()
@@ -62,8 +63,8 @@ export default function DatePosts() {
     }
 
     function PostList({posts}) {
-      const startTimestamp = Date.parse(`${date}T00:00:00.001Z`);
-      const endTimestamp = Date.parse(`${date}T23:59:59.9991Z`);
+      const startTimestamp = moment(`${date}T00:00:01`).format('x');
+      const endTimestamp = moment(`${date}T23:59:59`).format('x');
 
       let showPosts = [];
       if (posts != null) {
