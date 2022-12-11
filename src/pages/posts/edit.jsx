@@ -1,9 +1,14 @@
 import { useState, useRef, useEffect } from "react";
 import { Link, useParams } from "react-router-dom";
+import Uppy from '@uppy/core';
+import Webcam from "@uppy/webcam";
+import { DragDrop, Dashboard, useUppy } from '@uppy/react';
 
 import AppLayout from "../../components/AppLayout";
 import { useAuth } from "../../contexts/AuthContext";
 import { getDatabase, ref, set } from "firebase/database";
+import { getStorage, ref as storageRef, uploadBytes, deleteObject } from "firebase/storage";
+import { storage } from "../../firebase";
 
 import { Container } from "../../components/Container";
 import { Label } from "../../components/Label";
@@ -40,18 +45,31 @@ export default function EditPost() {
       redirect('/home');
     }
 
-    const currentPost = posts.find(post => post.post_id == post_id);
-    if (currentPost == null) {
+    const postData = posts.find(post => post.post_id == post_id);
+    const currentPostIndex = posts.indexOf(postData);
+    if (postData == null) {
       redirect('/home');
     }
 
     const titleEl = useRef('');
     let editorRef = null;
     const [formErrors, setFormErrors] = useState({});
+    const [currentPost, setCurrentPost] = useState(postData);
+    const [removedImages, setRemovedImages] = useState([]);
     const [isSaving, setIsSaving] = useState(false);
 
     useEffect(() => {
       setTimeout(() => editorRef.editor.html.set(decrypt(currentUser.uid, currentPost.content)), 10)
+    });
+
+    const uppy_instance = useUppy(() => {
+      return new Uppy({
+        id: 'equipment_uppy',
+        restrictions: { allowedFileTypes: ['image/*'] }, 
+        autoProceed: false
+      }).use(Webcam, {
+        modes: ['picture']
+      });
     });
 
     const config = {
@@ -85,6 +103,28 @@ export default function EditPost() {
       const currentTimestamp = Date.now();
       const slug = slugify(formTitle);
 
+      const attachedFiles = uppy_instance.getFiles();
+      let attachedFileNames = currentPost.files ? currentPost.files.split("||") : [];
+      for (let i=0;i<attachedFiles.length;i++) {
+        const uploadingFile = attachedFiles[i];
+        const randomName = Date.now().toString()+`.${uploadingFile.extension}`;
+        const fileRef = storageRef(storage, 'post-images/'+randomName);
+        attachedFileNames.push(randomName);
+        uploadBytes(fileRef, uploadingFile.data).then((snapshot) => {
+          
+        });
+      }
+
+      for (let i=0;i<removedImages.length;i++) {
+        const imageName = removedImages[i];
+        if (imageName.length == 0) {
+          continue;
+        }
+        const fileRef = storageRef(storage, 'post-images/'+imageName);
+
+        deleteObject(fileRef);
+      }
+
       const formContent = editorRef.editor.html.get(true);
       const post = {
         post_id: currentPost.post_id,
@@ -92,19 +132,40 @@ export default function EditPost() {
         title: formTitle,
         content: crypt(currentUser.uid, formContent),
         created_at: currentPost.created_at,
-        edited_at: currentTimestamp
+        edited_at: currentTimestamp,
+        files: attachedFileNames.join("||")
       };
 
       const db = getDatabase();
       set(ref(db, 'posts/' + currentUser.uid + '/' + currentPost.post_id.toString()), post);
 
-      const currentPostIndex = posts.indexOf(currentPost);
       posts[currentPostIndex] = post;
       setLocalData(`posts-${currentUser.uid}`, posts, true);
 
       setIsSaving(false);
 
       redirect('/home');
+    }
+
+    function getPreviewUrl(imageName) {
+      return `https://firebasestorage.googleapis.com/v0/b/first-react-app-665ac.appspot.com/o/post-images%2F${imageName}?alt=media&token=aa5de641-644b-41e0-a61f-dba898caa004`;
+    }
+
+    function removeImage(imageName) {
+      let fileNames = currentPost.files.split("||");
+      const imageIndex = fileNames.indexOf(imageName);
+      fileNames.splice(imageIndex, 1);
+      if (fileNames.length == 0) {
+        currentPost.files = null;
+      }else {
+        currentPost.files = fileNames.join("||");
+      }
+      let images = removedImages;
+      images.push(imageName);
+      setRemovedImages(images);
+      const postData = {...currentPost};
+      setCurrentPost(postData);
+      console.log(removedImages);
     }
 
     return (
@@ -155,6 +216,32 @@ export default function EditPost() {
                           <Label htmlFor={'post-content'} title={'Post Content'} />
                           <FroalaEditor ref={(ref) => (editorRef = ref)} config={config} tag='textarea'/>
                         </div>
+                        <div>
+                          <Label htmlFor={'post-image'} title='Post Image' />
+                          <Dashboard 
+                          uppy={uppy_instance}
+                          id='uppy_post_image'
+                          width='100%'
+                          height='500px' 
+                          >  
+                          </Dashboard> 
+                        </div>
+                        {currentPost.files != null && (
+                          <div>
+                            <Label htmlFor={'post-image'} title='Uploaded Images' />
+                            <div className="mt-3 flex gap-x-5">
+                              {currentPost.files.split("||").map((imageName) => (
+                                <div key={imageName}>
+                                  <a href={getPreviewUrl(imageName)} target="_blank">
+                                    <div className="rounded-md h-40 w-40 border-2 border-gray-300 hover:border-pink-400 bg-cover bg-no-repeat" style={{backgroundImage: `url(${getPreviewUrl(imageName)})`}}></div>
+                                  </a>
+                                  <button onClick={() => removeImage(imageName)} className="mt-2 font-medium text-sm text-red-500 hover:text-red-600">Remove</button>
+                                </div>
+                                // <img src={getPreviewUrl(imageName)} className="h-40 w-40" />
+                              ))}
+                            </div>
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>

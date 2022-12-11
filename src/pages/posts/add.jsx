@@ -1,13 +1,19 @@
-import { useState, useRef } from "react";
+import { useState, useRef, Component } from "react";
 import { Link } from "react-router-dom";
+import Uppy from '@uppy/core';
+import Webcam from "@uppy/webcam";
+import { DragDrop, Dashboard, useUppy } from '@uppy/react';
 
 import AppLayout from "../../components/AppLayout";
 import { useAuth } from "../../contexts/AuthContext";
 import { getDatabase, ref, set } from "firebase/database";
+import { getStorage, ref as storageRef, uploadBytes } from "firebase/storage";
+import { storage } from "../../firebase";
 
 import { Container } from "../../components/Container";
 import { Label } from './../../components/Label';
 
+import { PhotoIcon } from "@heroicons/react/24/solid"
 import { ArrowLeftIcon } from "@heroicons/react/20/solid";
 
 import { getLocalData, setLocalData, slugify, crypt } from "../../helpers";
@@ -29,14 +35,28 @@ import 'froala-editor/css/plugins/table.min.css';
 import 'froala-editor/css/plugins/char_counter.min.css';
 import 'froala-editor/css/froala_editor.pkgd.min.css';
 
+import '@uppy/core/dist/style.css'
+import '@uppy/dashboard/dist/style.css'
+
 import FroalaEditor from 'react-froala-wysiwyg';
 
 export default function AddPost() {
     const { currentUser, redirect } = useAuth()
 
     const titleEl = useRef('');
+    const imageEl = useRef('');
     const [formErrors, setFormErrors] = useState({});
     const [isSaving, setIsSaving] = useState(false);
+
+    const uppy_instance = useUppy(() => {
+      return new Uppy({
+        id: 'equipment_uppy',
+        restrictions: { allowedFileTypes: ['image/*'] }, 
+        autoProceed: false
+      }).use(Webcam, {
+        modes: ['picture']
+      });
+    });
 
     const config = {
       placeholderText: 'Type your post content here...',
@@ -71,6 +91,18 @@ export default function AddPost() {
       const slug = slugify(formTitle);
       const postId = currentTimestamp;
 
+      const attachedFiles = uppy_instance.getFiles();
+      let attachedFileNames = [];
+      for (let i=0;i<attachedFiles.length;i++) {
+        const uploadingFile = attachedFiles[i];
+        const randomName = Date.now().toString()+`.${uploadingFile.extension}`;
+        const fileRef = storageRef(storage, 'post-images/'+randomName);
+        attachedFileNames.push(randomName);
+        uploadBytes(fileRef, uploadingFile.data).then((snapshot) => {
+          
+        });
+      }
+
       const formContent = editorRef.editor.html.get(true);
       const post = {
         post_id: postId,
@@ -78,7 +110,8 @@ export default function AddPost() {
         title: formTitle,
         content: crypt(currentUser.uid, formContent),
         created_at: currentTimestamp,
-        edited_at: currentTimestamp
+        edited_at: currentTimestamp,
+        files: attachedFileNames.join("||")
       };
 
       const db = getDatabase();
@@ -141,6 +174,16 @@ export default function AddPost() {
                         <div>
                           <Label htmlFor={'post-content'} title={'Post Content'} />
                           <FroalaEditor ref={(ref) => (editorRef = ref)} config={config} tag='textarea'/>
+                        </div>
+                        <div>
+                          <Label htmlFor={'post-image'} title='Post Image' />
+                          <Dashboard 
+                          uppy={uppy_instance}
+                          id='uppy_post_image'
+                          width='100%'
+                          height='500px' 
+                          >  
+                          </Dashboard> 
                         </div>
                       </div>
                     </div>

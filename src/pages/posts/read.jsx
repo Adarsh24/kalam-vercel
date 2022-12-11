@@ -32,6 +32,10 @@ export default function ReadPost() {
     const [deleteOpen, setDeleteOpen] = useState(false)
     const cancelButtonRef = useRef(null)
 
+    function getPreviewUrl(imageName) {
+      return `https://firebasestorage.googleapis.com/v0/b/first-react-app-665ac.appspot.com/o/post-images%2F${imageName}?alt=media&token=aa5de641-644b-41e0-a61f-dba898caa004`;
+    }
+
     function deleteProcess() {
       setIsDeleting(true);
 
@@ -101,6 +105,16 @@ export default function ReadPost() {
                       <div className="flex flex-col space-y-5">
                         <div dangerouslySetInnerHTML={{ __html: decrypt(currentUser.uid, currentPost.content) }}/>
                       </div>
+                      {currentPost.files != null && (
+                        <div className="mt-10 flex gap-x-5">
+                          {currentPost.files.split("||").map((imageName) => (
+                            <a key={imageName} href={getPreviewUrl(imageName)} target="_blank">
+                              <div className="rounded-md h-40 w-40 border-2 border-gray-300 hover:border-pink-400 bg-cover bg-no-repeat" style={{backgroundImage: `url(${getPreviewUrl(imageName)})`}}></div>
+                            </a>
+                            // <img src={getPreviewUrl(imageName)} className="h-40 w-40" />
+                          ))}
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
