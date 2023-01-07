@@ -23,7 +23,7 @@ export default function ReadPost() {
       redirect('/home');
     }
 
-    const currentPost = posts.find(post => post.post_id === post_id);
+    const currentPost = posts.find(post => post.post_id == post_id);
     if (currentPost == null) {
       redirect('/home');
     }
@@ -42,7 +42,7 @@ export default function ReadPost() {
       const db = getDatabase();
       set(ref(db, 'posts/' + currentUser.uid + '/' + post_id.toString()), null);
 
-      const updatedPosts = posts.filter(post => post.post_id !== post_id);
+      const updatedPosts = posts.filter(post => post.post_id != post_id);
       setLocalData(`posts-${currentUser.uid}`, updatedPosts, true);
 
       setIsDeleting(false);
@@ -80,7 +80,7 @@ export default function ReadPost() {
                       <div className="-mt-5 mb-10 flex font-display text-xs">
                         <p className={
                           clsx(
-                            currentPost.created_at !== currentPost.edited_at && 'hidden',
+                            currentPost.created_at != currentPost.edited_at && 'hidden',
                             'text-xs text-slate-400 font-medium'
                           )
                         }>
@@ -92,7 +92,7 @@ export default function ReadPost() {
 
                         <p className={
                           clsx(
-                            currentPost.created_at === currentPost.edited_at && 'hidden',
+                            currentPost.created_at == currentPost.edited_at && 'hidden',
                             'text-xs text-slate-400 font-medium'
                           )
                         }>
@@ -105,7 +105,7 @@ export default function ReadPost() {
                       <div className="flex flex-col space-y-5">
                         <div dangerouslySetInnerHTML={{ __html: decrypt(currentUser.uid, currentPost.content) }}/>
                       </div>
-                      {currentPost.files !== null && currentPost.files !== '' && (
+                      {currentPost.files != null && currentPost.files != '' && (
                         <div className="mt-10 flex gap-x-5">
                           {currentPost.files.split("||").map((imageName) => (
                             <a key={imageName} href={getPreviewUrl(imageName)} target="_blank">
