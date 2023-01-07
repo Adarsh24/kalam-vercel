@@ -1,19 +1,18 @@
-import { useState, useRef, Component } from "react";
+import { useState, useRef } from "react";
 import { Link } from "react-router-dom";
 import Uppy from '@uppy/core';
 import Webcam from "@uppy/webcam";
-import { DragDrop, Dashboard, useUppy } from '@uppy/react';
+import { Dashboard, useUppy } from '@uppy/react';
 
 import AppLayout from "../../components/AppLayout";
 import { useAuth } from "../../contexts/AuthContext";
 import { getDatabase, ref, set } from "firebase/database";
-import { getStorage, ref as storageRef, uploadBytes } from "firebase/storage";
+import { ref as storageRef, uploadBytes } from "firebase/storage";
 import { storage } from "../../firebase";
 
 import { Container } from "../../components/Container";
 import { Label } from './../../components/Label';
 
-import { PhotoIcon } from "@heroicons/react/24/solid"
 import { ArrowLeftIcon } from "@heroicons/react/20/solid";
 
 import { getLocalData, setLocalData, slugify, crypt } from "../../helpers";

@@ -8,11 +8,12 @@ export function timestampToDate(timestamp, format = '') {
 
   if (format == 'y-m-d') {
     var day = date.getDate().toString();
-    var month = date.getMonth() + 1; // 0 -> January
+    var month = (date.getMonth() + 1).toString(); // 0 -> January
     var year = date.getFullYear();
 
     var pad = "00"
     var day = pad.substring(0, pad.length - day.length) + day
+    var month = pad.substring(0, pad.length - month.length) + month;
     return `${year}-${month}-${day}`;
   }
 }
